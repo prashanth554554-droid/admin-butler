@@ -94,8 +94,16 @@ function AddPrompt() {
   }, [editSlug]);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login", search: { redirect: "/add-prompt" } });
-  }, [loading, user, navigate]);
+    if (loading) return;
+    if (!user) {
+      navigate({ to: "/login", search: { redirect: "/add-prompt" } });
+      return;
+    }
+    if (!isAdmin) {
+      toast.error("Only the admin account can add or edit prompts");
+      navigate({ to: "/" });
+    }
+  }, [loading, user, isAdmin, navigate]);
 
   const setImageEntry = (index: number, patch: Partial<ImageEntry>) =>
     setImageEntries((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
