@@ -118,6 +118,8 @@ function AddPrompt() {
       const url = await uploadOwnInput(file);
       setImageEntry(index, { image_url: url });
       toast.success("Image uploaded");
+      // Keep storage under its budget by trimming the oldest files automatically.
+      void runStorageCleanup({}).catch(() => undefined);
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
