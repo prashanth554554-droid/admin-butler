@@ -41,7 +41,7 @@ type VideoEntry = { prompt: string; video_url: string };
 
 function AddPrompt() {
   const { prompt: initialPrompt, edit: editSlug } = Route.useSearch();
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
