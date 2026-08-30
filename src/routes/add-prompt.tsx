@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Image as ImageIcon, Loader2, Plus, Trash2, Upload, Video } from "lucide-react";
+import {
+  ExternalLink,
+  Image as ImageIcon,
+  Loader2,
+  Plus,
+  Trash2,
+  Upload,
+  Video,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/site/cards";
-import { slugify } from "@/lib/content";
+import { categoriesQuery, slugify } from "@/lib/content";
 import { uploadOwnInput } from "@/lib/storage";
 import { enforceStorageBudget as runStorageCleanup } from "@/lib/storage-cleanup.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,12 +31,12 @@ export const Route = createFileRoute("/add-prompt")({
       {
         name: "description",
         content:
-          "Add a prompt title, then save as many image prompts and video prompts as you need, each with its own related image or video link.",
+          "Add a title, description, category, media and as many prompt blocks and tool links as you need, then publish it to the library.",
       },
       { property: "og:title", content: "Add a Prompt — Prompt Studio AI" },
       {
         property: "og:description",
-        content: "Save multiple AI image prompts and video prompts, each with related media.",
+        content: "Publish AI image and video prompts with media, negative prompts and tool links.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,27 +45,28 @@ export const Route = createFileRoute("/add-prompt")({
   component: AddPrompt,
 });
 
-type ImageEntry = { prompt: string; image_url: string };
-type VideoEntry = { prompt: string; video_url: string };
+type ToolLink = { label: string; url: string };
 
 function AddPrompt() {
   const { prompt: initialPrompt, edit: editSlug } = Route.useSearch();
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  const { data: categories = [] } = useQuery(categoriesQuery());
 
   const [title, setTitle] = useState("");
-  const [isImage, setIsImage] = useState(true);
-  const [isVideo, setIsVideo] = useState(false);
-  const [imageEntries, setImageEntries] = useState<ImageEntry[]>([
-    { prompt: initialPrompt ?? "", image_url: "" },
-  ]);
-  const [videoEntries, setVideoEntries] = useState<VideoEntry[]>([{ prompt: "", video_url: "" }]);
+  const [shortDescription, setShortDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [kind, setKind] = useState<"image" | "video">("image");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [blocks, setBlocks] = useState<string[]>([initialPrompt ?? ""]);
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [toolLinks, setToolLinks] = useState<ToolLink[]>([{ label: "", url: "" }]);
   const [busy, setBusy] = useState(false);
-  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loadingExisting, setLoadingExisting] = useState(Boolean(editSlug));
 
-  // Edit mode: load the existing prompt and prefill the form.
+  // Edit mode: load the existing prompt and prefill every field.
   useEffect(() => {
     if (!editSlug) return;
     let active = true;
@@ -73,20 +82,21 @@ function AddPrompt() {
         setLoadingExisting(false);
         return;
       }
-      const images = (data.image_prompts as ImageEntry[] | null) ?? [];
-      const videos = (data.video_prompts as VideoEntry[] | null) ?? [];
+      const savedBlocks = (data.prompt_blocks as string[] | null) ?? [];
+      const savedTools = (data.tool_links as ToolLink[] | null) ?? [];
       setEditingId(data.id);
       setTitle(data.title);
-      setIsImage(data.is_image || images.length > 0);
-      setIsVideo(data.is_video || videos.length > 0);
-      setImageEntries(
-        images.length
-          ? images
-          : [{ prompt: data.image_prompt ?? "", image_url: data.featured_image_url ?? "" }],
+      setShortDescription(data.short_description ?? "");
+      setCategoryId(data.category_id ?? "");
+      setKind(data.is_video ? "video" : "image");
+      setMediaUrl(data.example_video_url || data.featured_image_url || "");
+      setBlocks(
+        savedBlocks.length
+          ? savedBlocks
+          : [data.video_prompt || data.image_prompt || ""],
       );
-      setVideoEntries(
-        videos.length ? videos : [{ prompt: data.video_prompt ?? "", video_url: "" }],
-      );
+      setNegativePrompt(data.negative_prompt ?? "");
+      setToolLinks(savedTools.length ? savedTools : [{ label: "", url: "" }]);
       setLoadingExisting(false);
     })();
     return () => {
@@ -106,25 +116,25 @@ function AddPrompt() {
     }
   }, [loading, user, isAdmin, navigate]);
 
-  const setImageEntry = (index: number, patch: Partial<ImageEntry>) =>
-    setImageEntries((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+  const setBlock = (index: number, value: string) =>
+    setBlocks((prev) => prev.map((item, i) => (i === index ? value : item)));
 
-  const setVideoEntry = (index: number, patch: Partial<VideoEntry>) =>
-    setVideoEntries((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+  const setTool = (index: number, patch: Partial<ToolLink>) =>
+    setToolLinks((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
 
-  const upload = async (index: number, file: File | undefined) => {
+  const upload = async (file: File | undefined) => {
     if (!file) return;
-    setUploadingIndex(index);
+    setUploading(true);
     try {
       const url = await uploadOwnInput(file);
-      setImageEntry(index, { image_url: url });
-      toast.success("Image uploaded");
+      setMediaUrl(url);
+      toast.success("Upload complete");
       // Keep storage under its budget by trimming the oldest files automatically.
       void runStorageCleanup({}).catch(() => undefined);
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
-      setUploadingIndex(null);
+      setUploading(false);
     }
   };
 
@@ -134,43 +144,40 @@ function AddPrompt() {
       toast.error("Add a prompt title");
       return;
     }
-    if (!isImage && !isVideo) {
-      toast.error("Select Image Prompt, Video Prompt, or both");
-      return;
-    }
-
-    const cleanImages = isImage
-      ? imageEntries
-          .map((e) => ({ prompt: e.prompt.trim(), image_url: e.image_url.trim() }))
-          .filter((e) => e.prompt || e.image_url)
-      : [];
-    const cleanVideos = isVideo
-      ? videoEntries
-          .map((e) => ({ prompt: e.prompt.trim(), video_url: e.video_url.trim() }))
-          .filter((e) => e.prompt || e.video_url)
-      : [];
-
-    if (!cleanImages.length && !cleanVideos.length) {
+    const cleanBlocks = blocks.map((b) => b.trim()).filter(Boolean);
+    if (!cleanBlocks.length) {
       toast.error("Write at least one prompt");
       return;
     }
+    const cleanTools = toolLinks
+      .map((t) => ({ label: t.label.trim(), url: t.url.trim() }))
+      .filter((t) => t.label || t.url);
+
+    const isVideo = kind === "video";
+    const media = mediaUrl.trim();
+    const joined = cleanBlocks.join("\n\n");
 
     setBusy(true);
     try {
-      const slug = editingId
-        ? editSlug!
-        : `${slugify(title)}-${crypto.randomUUID().slice(0, 6)}`;
+      const slug = editingId ? editSlug! : `${slugify(title)}-${crypto.randomUUID().slice(0, 6)}`;
       const payload = {
         title: title.trim(),
         slug,
+        short_description: shortDescription.trim() || null,
+        category_id: categoryId || null,
         prompt_type: isVideo ? "ai_video" : "ai_image",
         is_video: isVideo,
-        is_image: isImage,
-        image_prompts: cleanImages,
-        video_prompts: cleanVideos,
-        image_prompt: cleanImages.map((e) => e.prompt).filter(Boolean).join("\n\n") || null,
-        video_prompt: cleanVideos.map((e) => e.prompt).filter(Boolean).join("\n\n") || null,
-        featured_image_url: cleanImages.find((e) => e.image_url)?.image_url ?? null,
+        is_image: !isVideo,
+        prompt_blocks: cleanBlocks,
+        tool_links: cleanTools,
+        tool_name: cleanTools[0]?.label ?? null,
+        negative_prompt: negativePrompt.trim() || null,
+        image_prompts: isVideo ? [] : cleanBlocks.map((p) => ({ prompt: p, image_url: media })),
+        video_prompts: isVideo ? cleanBlocks.map((p) => ({ prompt: p, video_url: media })) : [],
+        image_prompt: isVideo ? null : joined,
+        video_prompt: isVideo ? joined : null,
+        featured_image_url: isVideo ? null : media || null,
+        example_video_url: isVideo ? media || null : null,
         status: "published",
         author_id: user!.id,
       };
@@ -178,7 +185,7 @@ function AddPrompt() {
         ? await supabase.from("prompts").update(payload).eq("id", editingId)
         : await supabase.from("prompts").insert(payload);
       if (error) throw new Error(error.message);
-      toast.success(editingId ? "Prompt updated" : "Prompt saved");
+      toast.success(editingId ? "Prompt updated" : "Prompt published");
       navigate({ to: "/prompt/$slug", params: { slug } });
     } catch (error) {
       toast.error((error as Error).message);
@@ -194,180 +201,248 @@ function AddPrompt() {
         title={editSlug ? "Edit prompt" : "Add a prompt"}
         description={
           editSlug
-            ? "Update the title, prompts and related media, then save your changes."
-            : "Give your prompt a title, then add as many image prompts and video prompts as you need."
+            ? "Update the details, prompts, media and tool links, then save your changes."
+            : "Fill in the details, add as many prompts and tool links as you need, then publish."
         }
       />
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <form onSubmit={submit} className="space-y-8 rounded-3xl border border-border bg-card p-5 sm:p-7">
+        <form
+          onSubmit={submit}
+          className="space-y-7 rounded-3xl border border-border bg-card p-5 sm:p-7"
+        >
           <div className="space-y-2">
-            <Label htmlFor="title">Prompt Title</Label>
+            <Label htmlFor="title">Prompt title</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              maxLength={140}
               placeholder="Enter prompt title"
               className="bg-surface"
             />
           </div>
 
-          <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm">
-              <Checkbox
-                checked={isImage}
-                onCheckedChange={(v) => setIsImage(v === true)}
-                aria-label="Image Prompt"
-              />
-              <ImageIcon className="size-4 text-muted-foreground" /> Image Prompt
-            </label>
-            <label className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm">
-              <Checkbox
-                checked={isVideo}
-                onCheckedChange={(v) => setIsVideo(v === true)}
-                aria-label="Video Prompt"
-              />
-              <Video className="size-4 text-muted-foreground" /> Video Prompt
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="short-description">Short description (optional)</Label>
+            <Input
+              id="short-description"
+              value={shortDescription}
+              onChange={(e) => setShortDescription(e.target.value)}
+              maxLength={200}
+              placeholder="What this prompt produces"
+              className="bg-surface"
+            />
           </div>
 
-          {isImage ? (
-            <section className="space-y-4">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Image prompts
-              </h2>
-              {imageEntries.map((entry, index) => (
-                <div key={index} className="space-y-3 rounded-2xl border border-border bg-surface/40 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Image Prompt #{index + 1}</span>
-                    {imageEntries.length > 1 ? (
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        aria-label={`Remove image prompt ${index + 1}`}
-                        onClick={() => setImageEntries((prev) => prev.filter((_, i) => i !== index))}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    ) : null}
-                  </div>
-                  <Textarea
-                    rows={5}
-                    value={entry.prompt}
-                    onChange={(e) => setImageEntry(index, { prompt: e.target.value })}
-                    placeholder="Describe the image: subject, lighting, lens, mood..."
-                    aria-label={`Image prompt ${index + 1}`}
-                    className="bg-surface"
-                  />
-                  <div className="space-y-2">
-                    <Label htmlFor={`image-url-${index}`}>Related Image</Label>
-                    <div className="flex flex-col gap-3 sm:flex-row">
-                      <Input
-                        id={`image-url-${index}`}
-                        value={entry.image_url}
-                        onChange={(e) => setImageEntry(index, { image_url: e.target.value })}
-                        placeholder="Image URL"
-                        className="bg-surface"
-                      />
-                      <input
-                        id={`image-file-${index}`}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => void upload(index, e.target.files?.[0])}
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="shrink-0"
-                        disabled={uploadingIndex === index}
-                        onClick={() => document.getElementById(`image-file-${index}`)?.click()}
-                      >
-                        {uploadingIndex === index ? (
-                          <Loader2 className="mr-2 size-4 animate-spin" />
-                        ) : (
-                          <Upload className="mr-2 size-4" />
-                        )}
-                        Upload Image
-                      </Button>
-                    </div>
-                    {entry.image_url ? (
-                      <img
-                        src={entry.image_url}
-                        alt={`Related image for image prompt ${index + 1}`}
-                        loading="lazy"
-                        className="mt-2 max-h-48 rounded-xl border border-border object-cover"
-                      />
-                    ) : null}
-                  </div>
-                </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category (optional)</Label>
+            <select
+              id="category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">No category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
               ))}
+            </select>
+          </div>
+
+          <fieldset className="space-y-2">
+            <legend className="mb-2 text-sm font-medium">Prompt type</legend>
+            <div className="flex flex-wrap gap-3">
+              {(
+                [
+                  { value: "image", label: "Image prompt", Icon: ImageIcon },
+                  { value: "video", label: "Video prompt", Icon: Video },
+                ] as const
+              ).map(({ value, label, Icon }) => (
+                <label
+                  key={value}
+                  className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-colors ${
+                    kind === value
+                      ? "border-brand bg-surface-2 text-foreground"
+                      : "border-border bg-surface text-muted-foreground"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="prompt-kind"
+                    className="accent-[var(--brand)]"
+                    checked={kind === value}
+                    onChange={() => setKind(value)}
+                  />
+                  <Icon className="size-4" />
+                  {label}
+                </label>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This decides whether the prompt shows up under AI Image Prompts, AI Video Prompts.
+            </p>
+          </fieldset>
+
+          <div className="space-y-2">
+            <Label htmlFor="media-url">
+              {kind === "video" ? "Video" : "Image"} — upload or paste any link
+            </Label>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Input
+                id="media-url"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                placeholder="https://... (image or video link)"
+                className="bg-surface"
+              />
+              <input
+                id="media-file"
+                type="file"
+                accept={kind === "video" ? "video/*" : "image/*"}
+                className="hidden"
+                onChange={(e) => void upload(e.target.files?.[0])}
+              />
               <Button
                 type="button"
                 variant="secondary"
-                size="sm"
-                onClick={() => setImageEntries((prev) => [...prev, { prompt: "", image_url: "" }])}
+                className="shrink-0"
+                disabled={uploading}
+                onClick={() => document.getElementById("media-file")?.click()}
               >
-                <Plus className="mr-1.5 size-4" /> Add Another Image Prompt
+                {uploading ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 size-4" />
+                )}
+                Upload
               </Button>
-            </section>
-          ) : null}
+            </div>
+            {mediaUrl && kind === "image" ? (
+              <img
+                src={mediaUrl}
+                alt="Preview of the media attached to this prompt"
+                loading="lazy"
+                className="mt-2 max-h-52 rounded-xl border border-border object-cover"
+              />
+            ) : null}
+          </div>
 
-          {isVideo ? (
-            <section className="space-y-4">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Video prompts
-              </h2>
-              {videoEntries.map((entry, index) => (
-                <div key={index} className="space-y-3 rounded-2xl border border-border bg-surface/40 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Video Prompt #{index + 1}</span>
-                    {videoEntries.length > 1 ? (
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        aria-label={`Remove video prompt ${index + 1}`}
-                        onClick={() => setVideoEntries((prev) => prev.filter((_, i) => i !== index))}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    ) : null}
-                  </div>
-                  <Textarea
-                    rows={5}
-                    value={entry.prompt}
-                    onChange={(e) => setVideoEntry(index, { prompt: e.target.value })}
-                    placeholder="Describe the shot, motion, camera, pacing..."
-                    aria-label={`Video prompt ${index + 1}`}
-                    className="bg-surface"
-                  />
-                  <div className="space-y-2">
-                    <Label htmlFor={`video-url-${index}`}>Related Video</Label>
-                    <Input
-                      id={`video-url-${index}`}
-                      value={entry.video_url}
-                      onChange={(e) => setVideoEntry(index, { video_url: e.target.value })}
-                      placeholder="Video URL"
-                      className="bg-surface"
-                    />
-                  </div>
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium">Prompts</h2>
+            {blocks.map((block, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Prompt {index + 1}
+                  </span>
+                  {blocks.length > 1 ? (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Remove prompt ${index + 1}`}
+                      onClick={() => setBlocks((prev) => prev.filter((_, i) => i !== index))}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  ) : null}
                 </div>
-              ))}
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setVideoEntries((prev) => [...prev, { prompt: "", video_url: "" }])}
-              >
-                <Plus className="mr-1.5 size-4" /> Add Another Video Prompt
-              </Button>
-            </section>
-          ) : null}
+                <Textarea
+                  rows={5}
+                  value={block}
+                  onChange={(e) => setBlock(index, e.target.value)}
+                  placeholder="Describe the shot, subject, lighting, lens, mood…"
+                  aria-label={`Prompt ${index + 1}`}
+                  className="bg-surface"
+                />
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setBlocks((prev) => [...prev, ""])}
+            >
+              <Plus className="mr-1.5 size-4" /> Add prompt {blocks.length + 1}
+            </Button>
+          </section>
 
-          <Button type="submit" size="lg" disabled={busy || loadingExisting} className="w-full bg-gradient-brand text-brand-foreground">
+          <div className="space-y-2">
+            <Label htmlFor="negative">Negative prompt (optional)</Label>
+            <Textarea
+              id="negative"
+              rows={3}
+              value={negativePrompt}
+              onChange={(e) => setNegativePrompt(e.target.value)}
+              placeholder="text overlays, watermark, extra fingers"
+              className="bg-surface"
+            />
+          </div>
+
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium">Tool links</h2>
+            {toolLinks.map((tool, index) => (
+              <div key={index} className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={tool.label}
+                  onChange={(e) => setTool(index, { label: e.target.value })}
+                  placeholder="Google Flow"
+                  aria-label={`Tool ${index + 1} name`}
+                  className="bg-surface sm:max-w-[40%]"
+                />
+                <Input
+                  value={tool.url}
+                  onChange={(e) => setTool(index, { url: e.target.value })}
+                  placeholder="https://labs.google/fx/tools/flow"
+                  aria-label={`Tool ${index + 1} link`}
+                  className="bg-surface"
+                />
+                {tool.url ? (
+                  <Button asChild type="button" size="icon" variant="secondary" className="shrink-0">
+                    <a
+                      href={tool.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`Open ${tool.label || "tool link"}`}
+                    >
+                      <ExternalLink className="size-4" />
+                    </a>
+                  </Button>
+                ) : null}
+                {toolLinks.length > 1 ? (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="shrink-0"
+                    aria-label={`Remove tool link ${index + 1}`}
+                    onClick={() => setToolLinks((prev) => prev.filter((_, i) => i !== index))}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                ) : null}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setToolLinks((prev) => [...prev, { label: "", url: "" }])}
+            >
+              <Plus className="mr-1.5 size-4" /> Add tool link
+            </Button>
+          </section>
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={busy || loadingExisting}
+            className="w-full bg-gradient-brand text-brand-foreground"
+          >
             {busy || loadingExisting ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-            {editSlug ? "Update Prompt" : "Save Prompt"}
+            {editSlug ? "Update prompt" : "Publish prompt"}
           </Button>
         </form>
       </div>
