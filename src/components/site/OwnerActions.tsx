@@ -28,7 +28,7 @@ export function OwnerActions({ prompt, redirectAfterDelete }: { prompt: Prompt; 
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const canManage = Boolean(user && (isAdmin || prompt.author_id === user.id));
+  const canManage = Boolean(user && isAdmin);
   if (!canManage) return null;
 
   const remove = async () => {
