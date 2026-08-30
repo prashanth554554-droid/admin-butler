@@ -4,6 +4,7 @@ import { Menu, Moon, Plus, Search, Sparkles, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/lib/theme";
+import { useAuth } from "@/lib/auth";
 
 const LINKS = [
   { to: "/", label: "Home" },
@@ -19,6 +20,7 @@ export function Navbar() {
   const [term, setTerm] = useState("");
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
+  const { isAdmin } = useAuth();
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -71,11 +73,13 @@ export function Navbar() {
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
 
-          <Button asChild className="hidden bg-gradient-brand text-brand-foreground sm:inline-flex">
-            <Link to="/add-prompt">
-              <Plus className="mr-1.5 size-4" /> Create Prompt
-            </Link>
-          </Button>
+          {isAdmin ? (
+            <Button asChild className="hidden bg-gradient-brand text-brand-foreground sm:inline-flex">
+              <Link to="/add-prompt">
+                <Plus className="mr-1.5 size-4" /> Create Prompt
+              </Link>
+            </Button>
+          ) : null}
 
           <Button
             variant="ghost"
@@ -113,13 +117,15 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              to="/add-prompt"
-              onClick={() => setOpen(false)}
-              className="mt-2 rounded-lg bg-gradient-brand px-3 py-2.5 text-center text-sm font-medium text-brand-foreground"
-            >
-              + Create Prompt
-            </Link>
+            {isAdmin ? (
+              <Link
+                to="/add-prompt"
+                onClick={() => setOpen(false)}
+                className="mt-2 rounded-lg bg-gradient-brand px-3 py-2.5 text-center text-sm font-medium text-brand-foreground"
+              >
+                + Create Prompt
+              </Link>
+            ) : null}
           </nav>
         </div>
       ) : null}
