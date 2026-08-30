@@ -19,7 +19,7 @@ import { useAuth } from "@/lib/auth";
 
 /**
  * Edit / delete controls rendered on top of a prompt card.
- * Visible only to the prompt's author or to an admin account.
+ * Visible only to the admin account — no other signed-in user sees them.
  */
 export function OwnerActions({ prompt, redirectAfterDelete }: { prompt: Prompt; redirectAfterDelete?: string }) {
   const { user, isAdmin } = useAuth();
