@@ -1,0 +1,1 @@
+GRANT service_role TO sandbox_exec; GRANT ALL ON SCHEMA public TO sandbox_exec;

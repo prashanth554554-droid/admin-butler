@@ -10,33 +10,193 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AddPromptRouteImport } from './routes/add-prompt'
+import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as TrendingRouteImport } from './routes/trending'
+import { Route as TutorialsRouteImport } from './routes/tutorials'
+import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as PromptSlugRouteImport } from './routes/prompt.$slug'
+import { Route as PromptsIndexRouteImport } from './routes/prompts.index'
+import { Route as PromptsAiImageRouteImport } from './routes/prompts.ai-image'
+import { Route as PromptsAiVideoRouteImport } from './routes/prompts.ai-video'
+import { Route as TutorialSlugRouteImport } from './routes/tutorial.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AddPromptRoute = AddPromptRouteImport.update({
+  id: '/add-prompt',
+  path: '/add-prompt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrendingRoute = TrendingRouteImport.update({
+  id: '/trending',
+  path: '/trending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorialsRoute = TutorialsRouteImport.update({
+  id: '/tutorials',
+  path: '/tutorials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategorySlugRoute = CategorySlugRouteImport.update({
+  id: '/category/$slug',
+  path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptSlugRoute = PromptSlugRouteImport.update({
+  id: '/prompt/$slug',
+  path: '/prompt/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptsIndexRoute = PromptsIndexRouteImport.update({
+  id: '/prompts/',
+  path: '/prompts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptsAiImageRoute = PromptsAiImageRouteImport.update({
+  id: '/prompts/ai-image',
+  path: '/prompts/ai-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptsAiVideoRoute = PromptsAiVideoRouteImport.update({
+  id: '/prompts/ai-video',
+  path: '/prompts/ai-video',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TutorialSlugRoute = TutorialSlugRouteImport.update({
+  id: '/tutorial/$slug',
+  path: '/tutorial/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add-prompt': typeof AddPromptRoute
+  '/categories': typeof CategoriesRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/trending': typeof TrendingRoute
+  '/tutorials': typeof TutorialsRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/prompt/$slug': typeof PromptSlugRoute
+  '/prompts/ai-image': typeof PromptsAiImageRoute
+  '/prompts/ai-video': typeof PromptsAiVideoRoute
+  '/tutorial/$slug': typeof TutorialSlugRoute
+  '/prompts/': typeof PromptsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add-prompt': typeof AddPromptRoute
+  '/categories': typeof CategoriesRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/trending': typeof TrendingRoute
+  '/tutorials': typeof TutorialsRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/prompt/$slug': typeof PromptSlugRoute
+  '/prompts/ai-image': typeof PromptsAiImageRoute
+  '/prompts/ai-video': typeof PromptsAiVideoRoute
+  '/tutorial/$slug': typeof TutorialSlugRoute
+  '/prompts': typeof PromptsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/add-prompt': typeof AddPromptRoute
+  '/categories': typeof CategoriesRoute
+  '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/trending': typeof TrendingRoute
+  '/tutorials': typeof TutorialsRoute
+  '/category/$slug': typeof CategorySlugRoute
+  '/prompt/$slug': typeof PromptSlugRoute
+  '/prompts/ai-image': typeof PromptsAiImageRoute
+  '/prompts/ai-video': typeof PromptsAiVideoRoute
+  '/tutorial/$slug': typeof TutorialSlugRoute
+  '/prompts/': typeof PromptsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/add-prompt'
+    | '/categories'
+    | '/login'
+    | '/search'
+    | '/trending'
+    | '/tutorials'
+    | '/category/$slug'
+    | '/prompt/$slug'
+    | '/prompts/ai-image'
+    | '/prompts/ai-video'
+    | '/tutorial/$slug'
+    | '/prompts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/add-prompt'
+    | '/categories'
+    | '/login'
+    | '/search'
+    | '/trending'
+    | '/tutorials'
+    | '/category/$slug'
+    | '/prompt/$slug'
+    | '/prompts/ai-image'
+    | '/prompts/ai-video'
+    | '/tutorial/$slug'
+    | '/prompts'
+  id:
+    | '__root__'
+    | '/'
+    | '/add-prompt'
+    | '/categories'
+    | '/login'
+    | '/search'
+    | '/trending'
+    | '/tutorials'
+    | '/category/$slug'
+    | '/prompt/$slug'
+    | '/prompts/ai-image'
+    | '/prompts/ai-video'
+    | '/tutorial/$slug'
+    | '/prompts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddPromptRoute: typeof AddPromptRoute
+  CategoriesRoute: typeof CategoriesRoute
+  LoginRoute: typeof LoginRoute
+  SearchRoute: typeof SearchRoute
+  TrendingRoute: typeof TrendingRoute
+  TutorialsRoute: typeof TutorialsRoute
+  CategorySlugRoute: typeof CategorySlugRoute
+  PromptSlugRoute: typeof PromptSlugRoute
+  PromptsAiImageRoute: typeof PromptsAiImageRoute
+  PromptsAiVideoRoute: typeof PromptsAiVideoRoute
+  TutorialSlugRoute: typeof TutorialSlugRoute
+  PromptsIndexRoute: typeof PromptsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +208,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/add-prompt': {
+      id: '/add-prompt'
+      path: '/add-prompt'
+      fullPath: '/add-prompt'
+      preLoaderRoute: typeof AddPromptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trending': {
+      id: '/trending'
+      path: '/trending'
+      fullPath: '/trending'
+      preLoaderRoute: typeof TrendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutorials': {
+      id: '/tutorials'
+      path: '/tutorials'
+      fullPath: '/tutorials'
+      preLoaderRoute: typeof TutorialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/category/$slug': {
+      id: '/category/$slug'
+      path: '/category/$slug'
+      fullPath: '/category/$slug'
+      preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompt/$slug': {
+      id: '/prompt/$slug'
+      path: '/prompt/$slug'
+      fullPath: '/prompt/$slug'
+      preLoaderRoute: typeof PromptSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompts/': {
+      id: '/prompts/'
+      path: '/prompts'
+      fullPath: '/prompts/'
+      preLoaderRoute: typeof PromptsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompts/ai-image': {
+      id: '/prompts/ai-image'
+      path: '/prompts/ai-image'
+      fullPath: '/prompts/ai-image'
+      preLoaderRoute: typeof PromptsAiImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompts/ai-video': {
+      id: '/prompts/ai-video'
+      path: '/prompts/ai-video'
+      fullPath: '/prompts/ai-video'
+      preLoaderRoute: typeof PromptsAiVideoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tutorial/$slug': {
+      id: '/tutorial/$slug'
+      path: '/tutorial/$slug'
+      fullPath: '/tutorial/$slug'
+      preLoaderRoute: typeof TutorialSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddPromptRoute: AddPromptRoute,
+  CategoriesRoute: CategoriesRoute,
+  LoginRoute: LoginRoute,
+  SearchRoute: SearchRoute,
+  TrendingRoute: TrendingRoute,
+  TutorialsRoute: TutorialsRoute,
+  CategorySlugRoute: CategorySlugRoute,
+  PromptSlugRoute: PromptSlugRoute,
+  PromptsAiImageRoute: PromptsAiImageRoute,
+  PromptsAiVideoRoute: PromptsAiVideoRoute,
+  TutorialSlugRoute: TutorialSlugRoute,
+  PromptsIndexRoute: PromptsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
