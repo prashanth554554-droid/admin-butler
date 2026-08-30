@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/site/cards";
 import { slugify } from "@/lib/content";
 import { uploadOwnInput } from "@/lib/storage";
+import { enforceStorageBudget as runStorageCleanup } from "@/lib/storage-cleanup.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
