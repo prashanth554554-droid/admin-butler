@@ -20,7 +20,7 @@ export function Navbar() {
   const [term, setTerm] = useState("");
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
