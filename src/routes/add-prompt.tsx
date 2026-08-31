@@ -218,7 +218,7 @@ function AddPrompt() {
               onChange={(e) => setTitle(e.target.value)}
               maxLength={140}
               placeholder="Enter prompt title"
-              className="bg-surface"
+              className="h-11 bg-surface"
             />
           </div>
 
@@ -230,7 +230,7 @@ function AddPrompt() {
               onChange={(e) => setShortDescription(e.target.value)}
               maxLength={200}
               placeholder="What this prompt produces"
-              className="bg-surface"
+              className="h-11 bg-surface"
             />
           </div>
 
@@ -295,7 +295,7 @@ function AddPrompt() {
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
                 placeholder="https://... (image or video link)"
-                className="bg-surface"
+                className="h-11 bg-surface"
               />
               <input
                 id="media-file"
@@ -390,14 +390,14 @@ function AddPrompt() {
                   onChange={(e) => setTool(index, { label: e.target.value })}
                   placeholder="Google Flow"
                   aria-label={`Tool ${index + 1} name`}
-                  className="bg-surface sm:max-w-[40%]"
+                  className="h-11 bg-surface sm:max-w-[40%]"
                 />
                 <Input
                   value={tool.url}
                   onChange={(e) => setTool(index, { url: e.target.value })}
                   placeholder="https://labs.google/fx/tools/flow"
                   aria-label={`Tool ${index + 1} link`}
-                  className="bg-surface"
+                  className="h-11 bg-surface"
                 />
                 {tool.url ? (
                   <Button asChild type="button" size="icon" variant="secondary" className="shrink-0">

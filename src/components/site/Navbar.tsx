@@ -8,11 +8,8 @@ import { useAuth } from "@/lib/auth";
 
 const LINKS = [
   { to: "/", label: "Home" },
-  { to: "/prompts/ai-video", label: "Video" },
   { to: "/prompts/ai-image", label: "Image" },
-  { to: "/tutorials", label: "Tutorials" },
-  { to: "/trending", label: "Trending" },
-  { to: "/categories", label: "Categories" },
+  { to: "/prompts/ai-video", label: "Video" },
 ] as const;
 
 export function Navbar() {
@@ -41,12 +38,12 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-0.5 lg:flex">
+        <nav className="mx-auto hidden items-center gap-1 lg:flex">
           {LINKS.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               activeProps={{ className: "text-foreground bg-accent" }}
               activeOptions={{ exact: link.to === "/" }}
             >
