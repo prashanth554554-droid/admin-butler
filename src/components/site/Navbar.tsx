@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Moon, Plus, Search, Sparkles, Sun, X } from "lucide-react";
+import { LogOut, Menu, Moon, Plus, Search, Sparkles, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/lib/theme";
@@ -20,7 +20,7 @@ export function Navbar() {
   const [term, setTerm] = useState("");
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -73,11 +73,22 @@ export function Navbar() {
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
 
-          {isAdmin ? (
+          {user ? (
             <Button asChild className="hidden bg-gradient-brand text-brand-foreground sm:inline-flex">
               <Link to="/add-prompt">
-                <Plus className="mr-1.5 size-4" /> Create Prompt
+                <Plus className="mr-1.5 size-4" /> Add Prompt
               </Link>
+            </Button>
+          ) : null}
+
+          {user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Log out"
+              onClick={() => void signOut()}
+            >
+              <LogOut className="size-4" />
             </Button>
           ) : null}
 
@@ -117,14 +128,26 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {isAdmin ? (
+            {user ? (
               <Link
                 to="/add-prompt"
                 onClick={() => setOpen(false)}
                 className="mt-2 rounded-lg bg-gradient-brand px-3 py-2.5 text-center text-sm font-medium text-brand-foreground"
               >
-                + Create Prompt
+                + Add Prompt
               </Link>
+            ) : null}
+            {user ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  void signOut();
+                }}
+                className="mt-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-center text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <LogOut className="size-4" /> Log out
+              </button>
             ) : null}
           </nav>
         </div>
