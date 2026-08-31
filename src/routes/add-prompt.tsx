@@ -390,14 +390,14 @@ function AddPrompt() {
                   onChange={(e) => setTool(index, { label: e.target.value })}
                   placeholder="Google Flow"
                   aria-label={`Tool ${index + 1} name`}
-                  className="bg-surface sm:max-w-[40%]"
+                  className="h-11 bg-surface sm:max-w-[40%]"
                 />
                 <Input
                   value={tool.url}
                   onChange={(e) => setTool(index, { url: e.target.value })}
                   placeholder="https://labs.google/fx/tools/flow"
                   aria-label={`Tool ${index + 1} link`}
-                  className="bg-surface"
+                  className="h-11 bg-surface"
                 />
                 {tool.url ? (
                   <Button asChild type="button" size="icon" variant="secondary" className="shrink-0">
