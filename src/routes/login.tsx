@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { claimFirstAdmin } from "@/lib/video.functions";
 import { useAuth } from "@/lib/auth";
 
@@ -28,7 +27,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function safePath(value: string | undefined) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/add-prompt";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
 }
 
@@ -72,20 +71,6 @@ function LoginPage() {
     }
   };
 
-  const google = async () => {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setBusy(false);
-      toast.error("Google sign-in failed. Please try again.");
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: target });
-  };
-
   const claimAdmin = async () => {
     setBusy(true);
     try {
@@ -112,22 +97,7 @@ function LoginPage() {
           Generate AI videos, save your renders and manage the studio.
         </p>
 
-        <Button
-          type="button"
-          variant="secondary"
-          className="mt-6 w-full"
-          disabled={busy}
-          onClick={google}
-        >
-          Continue with Google
-        </Button>
-
-        <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="h-px flex-1 bg-border" /> or use email
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
-        <form className="space-y-4" onSubmit={submit}>
+        <form className="mt-6 space-y-4" onSubmit={submit}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
