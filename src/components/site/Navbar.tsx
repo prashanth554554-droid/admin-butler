@@ -128,14 +128,26 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {isAdmin ? (
+            {user ? (
               <Link
                 to="/add-prompt"
                 onClick={() => setOpen(false)}
                 className="mt-2 rounded-lg bg-gradient-brand px-3 py-2.5 text-center text-sm font-medium text-brand-foreground"
               >
-                + Create Prompt
+                + Add Prompt
               </Link>
+            ) : null}
+            {user ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  void signOut();
+                }}
+                className="mt-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-center text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <LogOut className="size-4" /> Log out
+              </button>
             ) : null}
           </nav>
         </div>
