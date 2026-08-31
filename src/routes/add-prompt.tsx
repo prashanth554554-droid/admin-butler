@@ -218,7 +218,7 @@ function AddPrompt() {
               onChange={(e) => setTitle(e.target.value)}
               maxLength={140}
               placeholder="Enter prompt title"
-              className="bg-surface"
+              className="h-11 bg-surface"
             />
           </div>
 
