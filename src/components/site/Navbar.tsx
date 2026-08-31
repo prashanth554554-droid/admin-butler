@@ -8,11 +8,8 @@ import { useAuth } from "@/lib/auth";
 
 const LINKS = [
   { to: "/", label: "Home" },
-  { to: "/prompts/ai-video", label: "Video" },
   { to: "/prompts/ai-image", label: "Image" },
-  { to: "/tutorials", label: "Tutorials" },
-  { to: "/trending", label: "Trending" },
-  { to: "/categories", label: "Categories" },
+  { to: "/prompts/ai-video", label: "Video" },
 ] as const;
 
 export function Navbar() {
