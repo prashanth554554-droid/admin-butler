@@ -73,11 +73,22 @@ export function Navbar() {
             {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
 
-          {isAdmin ? (
+          {user ? (
             <Button asChild className="hidden bg-gradient-brand text-brand-foreground sm:inline-flex">
               <Link to="/add-prompt">
-                <Plus className="mr-1.5 size-4" /> Create Prompt
+                <Plus className="mr-1.5 size-4" /> Add Prompt
               </Link>
+            </Button>
+          ) : null}
+
+          {user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Log out"
+              onClick={() => void signOut()}
+            >
+              <LogOut className="size-4" />
             </Button>
           ) : null}
 
