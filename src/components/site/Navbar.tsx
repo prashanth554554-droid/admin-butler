@@ -10,6 +10,9 @@ const LINKS = [
   { to: "/", label: "Home" },
   { to: "/prompts/ai-image", label: "Image" },
   { to: "/prompts/ai-video", label: "Video" },
+  { to: "/tutorials", label: "Tutorials" },
+  { to: "/trending", label: "Trending" },
+  { to: "/categories", label: "Categories" },
 ] as const;
 
 export function Navbar() {
