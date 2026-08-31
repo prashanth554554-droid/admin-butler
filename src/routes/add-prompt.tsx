@@ -230,7 +230,7 @@ function AddPrompt() {
               onChange={(e) => setShortDescription(e.target.value)}
               maxLength={200}
               placeholder="What this prompt produces"
-              className="bg-surface"
+              className="h-11 bg-surface"
             />
           </div>
 
