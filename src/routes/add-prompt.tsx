@@ -295,7 +295,7 @@ function AddPrompt() {
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
                 placeholder="https://... (image or video link)"
-                className="bg-surface"
+                className="h-11 bg-surface"
               />
               <input
                 id="media-file"
