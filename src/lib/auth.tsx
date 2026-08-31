@@ -51,7 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!active) return;
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       setSession(nextSession ?? null);
-      void loadRole(nextSession?.user.id);
+      setLoading(true);
+      void loadRole(nextSession?.user.id).finally(() => {
+        if (active) setLoading(false);
+      });
     });
 
     return () => {
