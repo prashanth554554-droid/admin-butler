@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Moon, Plus, Search, Sparkles, Sun, X } from "lucide-react";
+import { LogOut, Menu, Moon, Plus, Search, Sparkles, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/lib/theme";
