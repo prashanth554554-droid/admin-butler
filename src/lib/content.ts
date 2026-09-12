@@ -15,6 +15,7 @@ export type Prompt = {
   title: string;
   slug: string;
   short_description: string | null;
+  descriptions: string[] | null;
   prompt_type: string;
   image_prompt: string | null;
   video_prompt: string | null;

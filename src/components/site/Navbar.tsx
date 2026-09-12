@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Menu, Moon, Plus, Search, Sparkles, Sun, X } from "lucide-react";
+import { LogOut, Menu, Moon, Plus, Search, Sparkles, Sun, UserRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 
@@ -20,7 +28,10 @@ export function Navbar() {
   const [term, setTerm] = useState("");
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const userName = typeof user?.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()
+    ? user.user_metadata.full_name.trim()
+    : user?.email?.split("@")[0] ?? "Account";
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -74,22 +85,25 @@ export function Navbar() {
           </Button>
 
           {user ? (
-            <Button asChild className="hidden bg-gradient-brand text-brand-foreground sm:inline-flex">
-              <Link to="/add-prompt">
-                <Plus className="mr-1.5 size-4" /> Add Prompt
-              </Link>
-            </Button>
-          ) : null}
-
-          {user ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Log out"
-              onClick={() => void signOut()}
-            >
-              <LogOut className="size-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open account menu">
+                  <UserRound className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="truncate">{userName}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/add-prompt">
+                    <Plus className="size-4" /> Add Prompt
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => void signOut()}>
+                  <LogOut className="size-4" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
 
           <Button
@@ -128,27 +142,6 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {user ? (
-              <Link
-                to="/add-prompt"
-                onClick={() => setOpen(false)}
-                className="mt-2 rounded-lg bg-gradient-brand px-3 py-2.5 text-center text-sm font-medium text-brand-foreground"
-              >
-                + Add Prompt
-              </Link>
-            ) : null}
-            {user ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  void signOut();
-                }}
-                className="mt-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-center text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <LogOut className="size-4" /> Log out
-              </button>
-            ) : null}
           </nav>
         </div>
       ) : null}
