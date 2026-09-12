@@ -57,6 +57,11 @@ function PromptDetail() {
   }
 
   const { prompt, steps, tools } = query.data;
+  const descriptions = prompt.descriptions?.length
+    ? prompt.descriptions
+    : prompt.short_description
+      ? [prompt.short_description]
+      : [];
 
   return (
     <>
@@ -87,10 +92,12 @@ function PromptDetail() {
             </Badge>
           </div>
           <h1 className="mt-5 text-3xl font-semibold sm:text-5xl">{prompt.title}</h1>
-          {prompt.short_description ? (
-            <p className="mt-4 max-w-2xl text-base text-muted-foreground">
-              {prompt.short_description}
-            </p>
+          {descriptions.length ? (
+            <div className="mt-4 max-w-2xl space-y-3 text-base text-muted-foreground">
+              {descriptions.map((description, index) => (
+                <p key={`${index}-${description.slice(0, 24)}`}>{description}</p>
+              ))}
+            </div>
           ) : null}
           <div className="mt-6 flex flex-wrap gap-3">
             {(prompt.tool_links ?? []).map((link) => (
@@ -181,23 +188,6 @@ function PromptDetail() {
                       text={entry.text}
                       onCopied={() => void bumpPromptCopyCount(prompt.id, prompt.copy_count)}
                     />
-                  ) : null}
-                  {entry.media ? (
-                    kind === "image" ? (
-                      <img
-                        src={entry.media}
-                        alt={`${prompt.title} — related image ${index + 1}`}
-                        loading="lazy"
-                        className="w-full rounded-2xl border border-border object-cover"
-                      />
-                    ) : (
-                      <video
-                        src={entry.media}
-                        controls
-                        playsInline
-                        className="w-full rounded-2xl border border-border bg-black"
-                      />
-                    )
                   ) : null}
                 </div>
               ))}

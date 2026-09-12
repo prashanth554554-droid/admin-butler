@@ -54,7 +54,7 @@ function AddPrompt() {
   const { data: categories = [] } = useQuery(categoriesQuery());
 
   const [title, setTitle] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
+  const [descriptions, setDescriptions] = useState<string[]>([""]);
   const [categoryId, setCategoryId] = useState("");
   const [kind, setKind] = useState<"image" | "video">("image");
   const [mediaUrl, setMediaUrl] = useState("");
@@ -86,7 +86,10 @@ function AddPrompt() {
       const savedTools = (data.tool_links as ToolLink[] | null) ?? [];
       setEditingId(data.id);
       setTitle(data.title);
-      setShortDescription(data.short_description ?? "");
+      const savedDescriptions = (data.descriptions as string[] | null) ?? [];
+      setDescriptions(
+        savedDescriptions.length ? savedDescriptions : [data.short_description ?? ""],
+      );
       setCategoryId(data.category_id ?? "");
       setKind(data.is_video ? "video" : "image");
       setMediaUrl(data.example_video_url || data.featured_image_url || "");
@@ -119,6 +122,9 @@ function AddPrompt() {
   const setBlock = (index: number, value: string) =>
     setBlocks((prev) => prev.map((item, i) => (i === index ? value : item)));
 
+  const setDescription = (index: number, value: string) =>
+    setDescriptions((prev) => prev.map((item, i) => (i === index ? value : item)));
+
   const setTool = (index: number, patch: Partial<ToolLink>) =>
     setToolLinks((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
 
@@ -145,6 +151,7 @@ function AddPrompt() {
       return;
     }
     const cleanBlocks = blocks.map((b) => b.trim()).filter(Boolean);
+    const cleanDescriptions = descriptions.map((description) => description.trim()).filter(Boolean);
     if (!cleanBlocks.length) {
       toast.error("Write at least one prompt");
       return;
@@ -159,11 +166,14 @@ function AddPrompt() {
 
     setBusy(true);
     try {
-      const slug = editingId ? editSlug! : `${slugify(title)}-${crypto.randomUUID().slice(0, 6)}`;
+      const slug = editingId && editSlug
+        ? editSlug
+        : `${slugify(title)}-${crypto.randomUUID().slice(0, 6)}`;
       const payload = {
         title: title.trim(),
         slug,
-        short_description: shortDescription.trim() || null,
+        short_description: cleanDescriptions[0] ?? null,
+        descriptions: cleanDescriptions,
         category_id: categoryId || null,
         prompt_type: isVideo ? "ai_video" : "ai_image",
         is_video: isVideo,
@@ -222,17 +232,46 @@ function AddPrompt() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="short-description">Short description (optional)</Label>
-            <Input
-              id="short-description"
-              value={shortDescription}
-              onChange={(e) => setShortDescription(e.target.value)}
-              maxLength={200}
-              placeholder="What this prompt produces"
-              className="h-11 bg-surface"
-            />
-          </div>
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium">Descriptions (optional)</h2>
+            {descriptions.map((description, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`description-${index}`}>Description {index + 1}</Label>
+                  {descriptions.length > 1 ? (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Remove description ${index + 1}`}
+                      onClick={() =>
+                        setDescriptions((prev) => prev.filter((_, i) => i !== index))
+                      }
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  ) : null}
+                </div>
+                <Textarea
+                  id={`description-${index}`}
+                  value={description}
+                  onChange={(event) => setDescription(index, event.target.value)}
+                  maxLength={1000}
+                  rows={3}
+                  placeholder="Describe what this prompt produces"
+                  className="bg-surface py-3"
+                />
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setDescriptions((prev) => [...prev, ""])}
+            >
+              <Plus className="mr-1.5 size-4" /> Add description
+            </Button>
+          </section>
 
           <div className="space-y-2">
             <Label htmlFor="category">Category (optional)</Label>
@@ -319,13 +358,33 @@ function AddPrompt() {
                 Upload
               </Button>
             </div>
+            {mediaUrl ? (
+              kind === "image" ? (
+                <img
+                  key={mediaUrl}
+                  src={mediaUrl.trim()}
+                  alt="Preview of the media attached to this prompt"
+                  referrerPolicy="no-referrer"
+                  className="mt-2 max-h-52 rounded-xl border border-border object-cover"
+                  onError={(event) => {
+                    event.currentTarget.hidden = true;
+                    event.currentTarget.nextElementSibling?.removeAttribute("hidden");
+                  }}
+                />
+              ) : (
+                <video
+                  key={mediaUrl}
+                  src={mediaUrl.trim()}
+                  controls
+                  playsInline
+                  className="mt-2 max-h-52 w-full rounded-xl border border-border bg-surface object-contain"
+                />
+              )
+            ) : null}
             {mediaUrl && kind === "image" ? (
-              <img
-                src={mediaUrl}
-                alt="Preview of the media attached to this prompt"
-                loading="lazy"
-                className="mt-2 max-h-52 rounded-xl border border-border object-cover"
-              />
+              <p hidden className="text-sm text-destructive">
+                This image link cannot be previewed. Check that it is a direct, publicly accessible image URL.
+              </p>
             ) : null}
           </div>
 
