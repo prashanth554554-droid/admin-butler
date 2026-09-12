@@ -281,6 +281,7 @@ export type Database = {
           category_id: string | null
           copy_count: number
           created_at: string
+          descriptions: Json
           difficulty: string
           estimated_time: string | null
           example_video_url: string | null
@@ -310,6 +311,7 @@ export type Database = {
           category_id?: string | null
           copy_count?: number
           created_at?: string
+          descriptions?: Json
           difficulty?: string
           estimated_time?: string | null
           example_video_url?: string | null
@@ -339,6 +341,7 @@ export type Database = {
           category_id?: string | null
           copy_count?: number
           created_at?: string
+          descriptions?: Json
           difficulty?: string
           estimated_time?: string | null
           example_video_url?: string | null
