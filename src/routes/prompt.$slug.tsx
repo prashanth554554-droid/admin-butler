@@ -124,6 +124,8 @@ function PromptDetail() {
           <video
             src={prompt.example_video_url}
             controls
+            controlsList="nodownload"
+            disablePictureInPicture
             playsInline
             className="mb-10 w-full rounded-2xl border border-border bg-black"
           />
@@ -224,6 +226,8 @@ function PromptDetail() {
                         <video
                           src={step.video_url}
                           controls
+                          controlsList="nodownload"
+                          disablePictureInPicture
                           className="mt-3 w-full rounded-xl border border-border bg-black"
                         />
                       ) : null}

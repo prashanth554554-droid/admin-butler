@@ -90,6 +90,8 @@ function TutorialDetail() {
           <video
             src={post.featured_video_url}
             controls
+            controlsList="nodownload"
+            disablePictureInPicture
             playsInline
             className="mb-10 w-full rounded-2xl border border-border bg-black"
           />

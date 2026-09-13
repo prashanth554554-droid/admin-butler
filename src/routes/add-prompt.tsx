@@ -376,6 +376,8 @@ function AddPrompt() {
                   key={mediaUrl}
                   src={mediaUrl.trim()}
                   controls
+                  controlsList="nodownload"
+                  disablePictureInPicture
                   playsInline
                   className="mt-2 max-h-52 w-full rounded-xl border border-border bg-surface object-contain"
                 />
