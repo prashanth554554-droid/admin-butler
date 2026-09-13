@@ -29,8 +29,9 @@ export function Navbar() {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const { user, signOut } = useAuth();
-  const userName = typeof user?.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()
-    ? user.user_metadata.full_name.trim()
+  const fullName = user?.user_metadata?.["full_name"];
+  const userName = typeof fullName === "string" && fullName.trim()
+    ? fullName.trim()
     : user?.email?.split("@")[0] ?? "Account";
 
   const submit = (event: React.FormEvent) => {
